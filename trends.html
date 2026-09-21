@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A股底背离聚合量化分析</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;max-width:960px;margin:0 auto;padding:20px;color:#333;background:#fafbfc}
+h1{color:#1f4e79;border-bottom:2px solid #1f4e79;padding-bottom:8px;font-size:1.5em}
+h2{color:#1f4e79;margin-top:32px;font-size:1.2em;border-left:4px solid #e74c3c;padding-left:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0}
+.card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);text-align:center}
+.card .num{font-size:1.8em;font-weight:700;color:#1f4e79}
+.card .lbl{font-size:.85em;color:#888;margin-top:4px}
+.chart-wrap{background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin:16px 0}
+table{width:100%;border-collapse:collapse;margin:12px 0;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+th{background:#1f4e79;color:#fff;padding:10px 12px;font-size:.9em;text-align:left}
+td{padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:.9em}
+tr:hover{background:#f5f9ff}
+.disclaimer{margin-top:40px;font-size:.85em;color:#aaa;border-top:1px solid #eee;padding-top:12px}
+a.back{color:#1f4e79;text-decoration:none}
+</style></head><body>
+<a class="back" href="index.html">← 返回报告列表</a>
+<h1>📊 A股底背离聚合量化分析</h1>
+<p>数据范围：<strong>2026-09-16 ~ 2026-09-21</strong> | 共 3 个交易日 | 最新：<strong>2026-09-21</strong></p>
+<div class="cards">
+<div class="card"><div class="num">226</div><div class="lbl">最新信号总数</div></div>
+<div class="card"><div class="num" style="color:#e74c3c">27</div><div class="lbl">A级推荐</div></div>
+<div class="card"><div class="num">56.2</div><div class="lbl">平均多因子评分</div></div>
+<div class="card"><div class="num" style="color:#27ae60">26</div><div class="lbl">连续A级≥2天</div></div>
+</div>
+<h2>📈 信号总量与等级分布趋势</h2>
+<div class="chart-wrap"><canvas id="chart1" height="120"></canvas></div>
+<h2>📊 平均评分 / PE / 换手率 / 筹码集中度趋势</h2>
+<div class="chart-wrap"><canvas id="chart2" height="160"></canvas></div>
+<h2>⭐ 连续A级推荐股（≥2天均为A）</h2>
+<p>连续多日满足底背离+多因子A级，筛选强度最高的候选。</p>
+<table><thead><tr><th>代码</th><th>名称</th><th>等级变化</th><th>评分变化</th><th>持续天数</th></tr></thead><tbody>
+<tr><td><strong>000809</strong></td><td>和展能源</td><td>A → A → A</td><td>81.0 → 82.1 → 88.7 📈</td><td>3天</td></tr>
+<tr><td><strong>603075</strong></td><td>热威科技股份</td><td>B → A → A</td><td>82.1 → 86.4 → 86.6 📈</td><td>3天</td></tr>
+<tr><td><strong>002516</strong></td><td>旷达科技</td><td>A → A → A</td><td>82.1 → 84.6 → 84.9 📈</td><td>3天</td></tr>
+<tr><td><strong>002263</strong></td><td>大东南</td><td>A → A → A</td><td>78.1 → 79.0 → 74.0 —</td><td>3天</td></tr>
+<tr><td><strong>002108</strong></td><td>沧州明珠</td><td>A → A → C</td><td>76.2 → 78.9 → 74.0 —</td><td>3天</td></tr>
+<tr><td><strong>301106</strong></td><td>骏成科技</td><td>B → A → A</td><td>71.1 → 77.0 → 77.2 📈</td><td>3天</td></tr>
+<tr><td><strong>002928</strong></td><td>华夏航空</td><td>C → A → A</td><td>51.4 → 76.3 → 76.6 📈</td><td>3天</td></tr>
+<tr><td><strong>601877</strong></td><td>正泰电器</td><td>C → A → A</td><td>64.1 → 74.5 → 75.1 📈</td><td>3天</td></tr>
+<tr><td><strong>002233</strong></td><td>塔牌集团</td><td>A → A → A</td><td>70.5 → 74.1 → 72.2 📈</td><td>3天</td></tr>
+<tr><td><strong>002654</strong></td><td>万润科技</td><td>A → A → A</td><td>70.1 → 73.7 → 73.9 📈</td><td>3天</td></tr>
+<tr><td><strong>688628</strong></td><td>优利德科技</td><td>C → A → A</td><td>67.4 → 72.0 → 72.0 📈</td><td>3天</td></tr>
+<tr><td><strong>600930</strong></td><td>华电新能源集团</td><td>A → A → A</td><td>70.0 → 70.9 → 70.9 📈</td><td>3天</td></tr>
+<tr><td><strong>603305</strong></td><td>旭升集团</td><td>C → A → A</td><td>57.9 → 70.0 → 70.7 📈</td><td>3天</td></tr>
+<tr><td><strong>002130</strong></td><td>沃尔核材</td><td>B → A → A</td><td>68.1 → 70.5 → 70.4 📈</td><td>3天</td></tr>
+<tr><td><strong>300504</strong></td><td>天邑股份</td><td>A → A</td><td>83.7 → 83.9 📈</td><td>2天</td></tr>
+<tr><td><strong>300241</strong></td><td>瑞丰光电</td><td>A → A</td><td>83.2 → 83.4 📈</td><td>2天</td></tr>
+<tr><td><strong>301007</strong></td><td>德迈仕</td><td>A → A</td><td>80.8 → 81.0 📈</td><td>2天</td></tr>
+<tr><td><strong>002076</strong></td><td>星光股份</td><td>A → A</td><td>78.0 → 80.9 📈</td><td>2天</td></tr>
+<tr><td><strong>003007</strong></td><td>直真科技</td><td>A → A</td><td>80.7 → 80.8 📈</td><td>2天</td></tr>
+<tr><td><strong>002757</strong></td><td>南兴股份</td><td>A → A</td><td>77.7 → 77.9 📈</td><td>2天</td></tr>
+
+</tbody></table>
+<h2>🔄 信号持续性分布</h2>
+<div class="chart-wrap"><canvas id="chart3" height="120"></canvas></div>
+<p>横轴=出现天数，纵轴=股票数量。出现天数越多，底背离信号越强。</p>
+<h2>📈 Top 30 持续股评分走势</h2>
+<div class="chart-wrap"><canvas id="chart4" height="200"></canvas></div>
+<p class="disclaimer">⚠️ 本报告为量化筛选聚合分析，仅供参考，不构成投资建议。</p>
+<script>
+const dates = ["2026-09-16", "2026-09-18", "2026-09-21"];
+const totals = [175, 226, 226];
+const aData = [15, 27, 27];
+const bData = [25, 72, 73];
+const cData = [135, 127, 126];
+const avgData = [53.8, 56.1, 56.2];
+const peData = [9.7, 7.8, 11.1];
+const trData = [39.46, 37.12, 35.27];
+const concData = [40.4, 39.5, 39.2];
+const persData = {"3": 112, "2": 113};
+const trajData = {"000809": {"name": "和展能源", "scores": [80.99, 82.11, 88.73]}, "603075": {"name": "热威科技股份", "scores": [82.14, 86.36, 86.56]}, "002516": {"name": "旷达科技", "scores": [82.11, 84.58, 84.86]}, "003019": {"name": "宸展光电", "scores": [79.63, 79.13, 79.26]}, "002263": {"name": "大东南", "scores": [78.13, 79.04, 74.03]}, "002108": {"name": "沧州明珠", "scores": [76.16, 78.87, 73.96]}, "600736": {"name": "苏州高新", "scores": [69.34, 78.55, 78.75]}, "000029": {"name": "深深房Ａ", "scores": [66.23, 77.04, 77.25]}, "301106": {"name": "骏成科技", "scores": [71.07, 77.05, 77.18]}, "000065": {"name": "北方国际", "scores": [77.08, 68.09, 68.78]}, "002928": {"name": "华夏航空", "scores": [51.44, 76.33, 76.61]}, "601877": {"name": "正泰电器", "scores": [64.11, 74.51, 75.06]}, "301026": {"name": "浩通科技", "scores": [71.18, 74.1, 74.65]}, "002233": {"name": "塔牌集团", "scores": [70.54, 74.08, 72.21]}, "002654": {"name": "万润科技", "scores": [70.06, 73.66, 73.94]}, "600816": {"name": "建元信托", "scores": [69.59, 72.68, 73.09]}, "688628": {"name": "优利德科技", "scores": [67.44, 72.03, 71.97]}, "600930": {"name": "华电新能源集团", "scores": [69.96, 70.94, 70.94]}, "603305": {"name": "旭升集团", "scores": [57.92, 69.97, 70.66]}, "002130": {"name": "沃尔核材", "scores": [68.1, 70.53, 70.41]}, "301631": {"name": "壹连科技", "scores": [61.66, 69.63, 70.4]}, "600452": {"name": "涪陵电力", "scores": [66.12, 69.25, 69.73]}, "603166": {"name": "福达股份", "scores": [55.92, 68.93, 69.63]}, "002335": {"name": "科华数据", "scores": [68.89, 66.16, 66.85]}, "002472": {"name": "双环传动", "scores": [53.6, 68.32, 68.6]}, "000006": {"name": "深振业Ａ", "scores": [51.24, 67.03, 67.51]}, "300565": {"name": "科信技术", "scores": [62.38, 67.19, 67.45]}, "603730": {"name": "岱美股份", "scores": [59.31, 65.17, 66.0]}, "000586": {"name": "汇源通信", "scores": [65.52, 59.45, 59.45]}, "600062": {"name": "华润双鹤", "scores": [59.6, 64.25, 64.81]}};
+new Chart(document.getElementById('chart1'), {type:'bar', data:{labels:dates, datasets:[
+  {label:'C级', data:cData, backgroundColor:'#bdc3c7'},
+  {label:'B级', data:bData, backgroundColor:'#f39c12'},
+  {label:'A级', data:aData, backgroundColor:'#e74c3c'},
+  {label:'总信号', data:totals, type:'line', borderColor:'#1f4e79', borderWidth:2, pointRadius:4, tension:.3}
+]}, options:{responsive:true, scales:{x:{stacked:true}, y:{beginAtZero:true}}}});
+new Chart(document.getElementById('chart2'), {type:'line', data:{labels:dates, datasets:[
+  {label:'平均评分', data:avgData, borderColor:'#1f4e79', backgroundColor:'rgba(31,78,121,.1)', fill:true, tension:.3, yAxisID:'y'},
+  {label:'平均PE(TTM)', data:peData, borderColor:'#e74c3c', tension:.3, yAxisID:'y1'},
+  {label:'平均换手率%', data:trData, borderColor:'#27ae60', tension:.3, yAxisID:'y1'},
+  {label:'平均筹码集中度%', data:concData, borderColor:'#f39c12', tension:.3, yAxisID:'y1'}
+]}, options:{responsive:true, scales:{y:{position:'left', beginAtZero:true}, y1:{position:'right', grid:{drawOnChartArea:false}}}}});
+new Chart(document.getElementById('chart3'), {type:'bar', data:{labels:Object.keys(persData).map(k=>k+'天'), datasets:[{label:'股票数量', data:Object.values(persData), backgroundColor:'#3498db'}]},
+  options:{responsive:true, scales:{y:{beginAtZero:true}}}});
+const trajDatasets = Object.entries(trajData).map(([code,v],i) => ({
+  label: v.name||code, data: v.scores, borderColor: 'hsl('+(i*36%360)+',70%,45%)', tension:.3, pointRadius:3, spanGaps:true
+}));
+new Chart(document.getElementById('chart4'), {type:'line', data:{labels:dates, datasets:trajDatasets},
+  options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:false}}}});
+</script>
+</body></html>
