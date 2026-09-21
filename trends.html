@@ -75,11 +75,11 @@ const concData = [40.4, 39.5, 39.2];
 const persData = {"3": 112, "2": 113};
 const trajData = {"000809": {"name": "和展能源", "scores": [80.99, 82.11, 88.73]}, "603075": {"name": "热威科技股份", "scores": [82.14, 86.36, 86.56]}, "002516": {"name": "旷达科技", "scores": [82.11, 84.58, 84.86]}, "003019": {"name": "宸展光电", "scores": [79.63, 79.13, 79.26]}, "002263": {"name": "大东南", "scores": [78.13, 79.04, 74.03]}, "002108": {"name": "沧州明珠", "scores": [76.16, 78.87, 73.96]}, "600736": {"name": "苏州高新", "scores": [69.34, 78.55, 78.75]}, "000029": {"name": "深深房Ａ", "scores": [66.23, 77.04, 77.25]}, "301106": {"name": "骏成科技", "scores": [71.07, 77.05, 77.18]}, "000065": {"name": "北方国际", "scores": [77.08, 68.09, 68.78]}, "002928": {"name": "华夏航空", "scores": [51.44, 76.33, 76.61]}, "601877": {"name": "正泰电器", "scores": [64.11, 74.51, 75.06]}, "301026": {"name": "浩通科技", "scores": [71.18, 74.1, 74.65]}, "002233": {"name": "塔牌集团", "scores": [70.54, 74.08, 72.21]}, "002654": {"name": "万润科技", "scores": [70.06, 73.66, 73.94]}, "600816": {"name": "建元信托", "scores": [69.59, 72.68, 73.09]}, "688628": {"name": "优利德科技", "scores": [67.44, 72.03, 71.97]}, "600930": {"name": "华电新能源集团", "scores": [69.96, 70.94, 70.94]}, "603305": {"name": "旭升集团", "scores": [57.92, 69.97, 70.66]}, "002130": {"name": "沃尔核材", "scores": [68.1, 70.53, 70.41]}, "301631": {"name": "壹连科技", "scores": [61.66, 69.63, 70.4]}, "600452": {"name": "涪陵电力", "scores": [66.12, 69.25, 69.73]}, "603166": {"name": "福达股份", "scores": [55.92, 68.93, 69.63]}, "002335": {"name": "科华数据", "scores": [68.89, 66.16, 66.85]}, "002472": {"name": "双环传动", "scores": [53.6, 68.32, 68.6]}, "000006": {"name": "深振业Ａ", "scores": [51.24, 67.03, 67.51]}, "300565": {"name": "科信技术", "scores": [62.38, 67.19, 67.45]}, "603730": {"name": "岱美股份", "scores": [59.31, 65.17, 66.0]}, "000586": {"name": "汇源通信", "scores": [65.52, 59.45, 59.45]}, "600062": {"name": "华润双鹤", "scores": [59.6, 64.25, 64.81]}};
 new Chart(document.getElementById('chart1'), {type:'bar', data:{labels:dates, datasets:[
-  {label:'C级', data:cData, backgroundColor:'#bdc3c7'},
-  {label:'B级', data:bData, backgroundColor:'#f39c12'},
-  {label:'A级', data:aData, backgroundColor:'#e74c3c'},
-  {label:'总信号', data:totals, type:'line', borderColor:'#1f4e79', borderWidth:2, pointRadius:4, tension:.3}
-]}, options:{responsive:true, scales:{x:{stacked:true}, y:{beginAtZero:true}}}});
+  {label:'A级', data:aData, backgroundColor:'#e74c3c', order:2},
+  {label:'B级', data:bData, backgroundColor:'#f39c12', order:2},
+  {label:'C级', data:cData, backgroundColor:'#bdc3c7', order:2},
+  {label:'总信号', data:totals, type:'line', borderColor:'#1f4e79', borderWidth:2, pointRadius:4, tension:.3, order:1}
+]}, options:{responsive:true, plugins:{tooltip:{mode:'index', intersect:false}}, scales:{y:{beginAtZero:true}}}});
 new Chart(document.getElementById('chart2'), {type:'line', data:{labels:dates, datasets:[
   {label:'平均评分', data:avgData, borderColor:'#1f4e79', backgroundColor:'rgba(31,78,121,.1)', fill:true, tension:.3, yAxisID:'y'},
   {label:'平均PE(TTM)', data:peData, borderColor:'#e74c3c', tension:.3, yAxisID:'y1'},
@@ -92,6 +92,10 @@ const trajDatasets = Object.entries(trajData).map(([code,v],i) => ({
   label: v.name||code, data: v.scores, borderColor: 'hsl('+(i*36%360)+',70%,45%)', tension:.3, pointRadius:3, spanGaps:true
 }));
 new Chart(document.getElementById('chart4'), {type:'line', data:{labels:dates, datasets:trajDatasets},
-  options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:false}}}});
+  options:{responsive:true,
+    plugins:{legend:{display:true, position:'bottom', labels:{boxWidth:12, padding:6, font:{size:10}, usePointStyle:true}},
+             tooltip:{mode:'index', intersect:false}},
+    scales:{y:{beginAtZero:false}}
+  }});
 </script>
 </body></html>
