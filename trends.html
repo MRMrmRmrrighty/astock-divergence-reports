@@ -329,24 +329,20 @@ topSelectAll.addEventListener('change', () => {
   });
   chart4.update();
 });
+// 快捷区间是单选状态；手动修改日期后退出所有预设。
+let activeRangePreset = 'all';
 function setRangeFromLatest(days) {
   const end = allDates.length - 1;
   const start = Math.max(0, end - days + 1);
   startDateInput.value = allDates[start];
   endDateInput.value = allDates[end];
+  activeRangePreset = days;
   refresh();
   updateChipActive();
 }
 function updateChipActive() {
-  const end = allDates.length - 1;
   document.querySelectorAll('.chip').forEach(btn => {
-    if (btn.dataset.days === 'all') {
-      btn.classList.toggle('active', startDateInput.value === allDates[0] && endDateInput.value === allDates[end]);
-      return;
-    }
-    const days = Number(btn.dataset.days);
-    const start = Math.max(0, end - days + 1);
-    btn.classList.toggle('active', startDateInput.value === allDates[start] && endDateInput.value === allDates[end]);
+    btn.classList.toggle('active', String(activeRangePreset) === btn.dataset.days);
   });
 }
 function buildPersistentStocks(indexes) {
@@ -468,6 +464,8 @@ endDateInput.value = allDates.at(-1);
     if (days === 'all') {
       startDateInput.value = allDates[0];
       endDateInput.value = allDates.at(-1);
+      activeRangePreset = 'all';
+      refresh();
     } else {
       setRangeFromLatest(days);
     }
@@ -477,11 +475,13 @@ endDateInput.value = allDates.at(-1);
 });
 startDateInput.addEventListener('change', () => {
   if (startDateInput.value > endDateInput.value) endDateInput.value = startDateInput.value;
+  activeRangePreset = null;
   refresh();
   updateChipActive();
 });
 endDateInput.addEventListener('change', () => {
   if (endDateInput.value < startDateInput.value) startDateInput.value = endDateInput.value;
+  activeRangePreset = null;
   refresh();
   updateChipActive();
 });
