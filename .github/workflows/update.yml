@@ -1,0 +1,61 @@
+name: Daily update
+
+on:
+  schedule:
+    # 17:35 Asia/Shanghai, Monday to Friday.
+    - cron: "35 9 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Trade date (YYYY-MM-DD); leave empty for the latest weekday"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: astock-daily-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      TZ: Asia/Shanghai
+      requested_date: ${{ github.event.inputs.date }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install CJK fonts
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r pipeline/requirements.txt
+
+      - name: Run data pipeline
+        run: python pipeline/update_daily_report.py --date "$requested_date"
+
+      - name: Commit updated reports
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- .github/workflows .gitignore pipeline *.html *.csv
+          if git diff --cached --quiet; then
+            echo "No report changes detected."
+          else
+            report_date=$(TZ=Asia/Shanghai date +%F)
+            git commit -m "daily update ${report_date}"
+            git pull --rebase origin main
+            git push origin main
+          fi
