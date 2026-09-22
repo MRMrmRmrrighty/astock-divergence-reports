@@ -1,39 +1,141 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>A股底背离聚合量化分析</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;max-width:960px;margin:0 auto;padding:20px;color:#333;background:#fafbfc}
-h1{color:#1f4e79;border-bottom:2px solid #1f4e79;padding-bottom:8px;font-size:1.5em}
-h2{color:#1f4e79;margin-top:32px;font-size:1.2em;border-left:4px solid #e74c3c;padding-left:12px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0}
-.card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);text-align:center}
-.card .num{font-size:1.8em;font-weight:700;color:#1f4e79}
-.card .lbl{font-size:.85em;color:#888;margin-top:4px}
-.chart-wrap{background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin:16px 0}
-table{width:100%;border-collapse:collapse;margin:12px 0;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-th{background:#1f4e79;color:#fff;padding:10px 12px;font-size:.9em;text-align:left}
-td{padding:8px 12px;border-bottom:1px solid #f0f0f0;font-size:.9em}
-tr:hover{background:#f5f9ff}
-.disclaimer{margin-top:40px;font-size:.85em;color:#aaa;border-top:1px solid #eee;padding-top:12px}
-a.back{color:#1f4e79;text-decoration:none}
-</style></head><body>
-<a class="back" href="index.html">← 返回报告列表</a>
-<h1>📊 A股底背离聚合量化分析</h1>
-<p>数据范围：<strong>2026-09-16 ~ 2026-09-21</strong> | 共 3 个交易日 | 最新：<strong>2026-09-21</strong></p>
-<div class="cards">
-<div class="card"><div class="num">226</div><div class="lbl">最新信号总数</div></div>
-<div class="card"><div class="num" style="color:#e74c3c">27</div><div class="lbl">A级推荐</div></div>
-<div class="card"><div class="num">56.2</div><div class="lbl">平均多因子评分</div></div>
-<div class="card"><div class="num" style="color:#27ae60">26</div><div class="lbl">连续A级≥2天</div></div>
-</div>
-<h2>📈 信号总量与等级分布趋势</h2>
-<div class="chart-wrap"><canvas id="chart1" height="120"></canvas></div>
-<h2>📊 平均评分 / PE / 换手率 / 筹码集中度趋势</h2>
-<div class="chart-wrap"><canvas id="chart2" height="160"></canvas></div>
-<h2>⭐ 连续A级推荐股（≥2天均为A）</h2>
-<p>连续多日满足底背离+多因子A级，筛选强度最高的候选。</p>
-<table><thead><tr><th>代码</th><th>名称</th><th>等级变化</th><th>评分变化</th><th>持续天数</th></tr></thead><tbody>
+:root {
+  color-scheme: light dark;
+  --bg: #f5f5f7;
+  --card: rgba(255,255,255,.76);
+  --card-solid: #fff;
+  --text: #1d1d1f;
+  --muted: #6e6e73;
+  --hairline: rgba(0,0,0,.08);
+  --blue: #0071e3;
+  --red: #ff3b30;
+  --shadow: 0 18px 45px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000;
+    --card: rgba(28,28,30,.72);
+    --card-solid: #1c1c1e;
+    --text: #f5f5f7;
+    --muted: #a1a1a6;
+    --hairline: rgba(255,255,255,.12);
+    --blue: #0a84ff;
+    --red: #ff453a;
+    --shadow: 0 18px 45px rgba(0,0,0,.48);
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; min-height: 100vh; color: var(--text);
+  background:
+    radial-gradient(circle at 5% 0%, rgba(0,113,227,.13), transparent 34rem),
+    radial-gradient(circle at 100% 8%, rgba(255,59,48,.09), transparent 30rem),
+    var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", sans-serif;
+  letter-spacing: -.011em; line-height: 1.47; -webkit-font-smoothing: antialiased;
+}
+.topbar {
+  position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 16px min(4vw, 38px);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  border-bottom: 1px solid var(--hairline);
+  backdrop-filter: saturate(180%) blur(24px); -webkit-backdrop-filter: saturate(180%) blur(24px);
+}
+.brand { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; letter-spacing: -.02em; }
+.brand-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 4px rgba(255,59,48,.12); }
+.back {
+  display: inline-flex; align-items: center; gap: 7px; color: var(--blue); text-decoration: none;
+  font-size: 14px; font-weight: 600; padding: 8px 13px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--blue) 24%, transparent);
+}
+.back:hover { background: color-mix(in srgb, var(--blue) 8%, transparent); }
+main { width: min(1180px, calc(100% - 44px)); margin: 0 auto; padding: 38px 0 72px; }
+.eyebrow { color: var(--muted); font-size: 12.5px; font-weight: 650; text-transform: uppercase; letter-spacing: .1em; }
+h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.08; letter-spacing: -.025em; font-weight: 700; margin: 9px 0 13px; }
+.hero-copy { color: var(--muted); font-size: 16px; max-width: 720px; margin: 0; }
+.metrics { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 13px; margin: 30px 0 16px; }
+.metric, .chart-panel, .table-panel {
+  border: 1px solid var(--hairline); border-radius: 22px; background: var(--card); box-shadow: var(--shadow);
+  backdrop-filter: saturate(180%) blur(24px); -webkit-backdrop-filter: saturate(180%) blur(24px);
+}
+.metric { padding: 20px; }
+.metric b { display: block; font-size: clamp(24px,3vw,31px); font-weight: 700; letter-spacing: -.03em; }
+.metric span { display: block; color: var(--muted); font-size: 12.5px; margin-top: 6px; }
+.metric.red b { color: var(--red); }
+.metric.green b { color: #30d158; }
+.section { margin-top: 30px; }
+.section-head { margin: 0 4px 14px; }
+.section-head h2 { font-size: 21px; font-weight: 700; letter-spacing: -.022em; margin: 0 0 4px; }
+.section-head p { color: var(--muted); font-size: 14px; margin: 0; }
+.chart-panel { padding: 22px; }
+.chart-stage { position: relative; height: 310px; }
+.chart-stage.compact { height: 260px; }
+.chart-stage.tall { height: 540px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; }
+.table-panel { padding: 8px 0 4px; overflow: hidden; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  position: sticky; top: 0; text-align: left; color: var(--muted); font-size: 12px; font-weight: 650;
+  padding: 14px 20px; border-bottom: 1px solid var(--hairline); background: var(--card-solid); white-space: nowrap;
+}
+td { padding: 15px 20px; border-bottom: 1px solid var(--hairline); font-size: 14px; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+tbody tr { transition: background .18s ease; }
+tbody tr:hover { background: color-mix(in srgb, var(--blue) 5%, transparent); }
+code.code { font-family: ui-monospace, SF Mono, Menlo, monospace; font-size: 12.8px; color: var(--muted); }
+.disclaimer { color: var(--muted); font-size: 12.5px; text-align: center; margin-top: 42px; }
+@media (max-width: 900px) {
+  main { width: min(1180px, calc(100% - 30px)); padding-top: 28px; }
+  .metrics { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .grid-2 { grid-template-columns: 1fr; }
+  .chart-stage.tall { height: 470px; }
+  .topbar { padding: 13px 18px; }
+}
+</style>
+</head>
+<body>
+<nav class="topbar">
+  <div class="brand"><span class="brand-dot"></span>A股底背离监测</div>
+  <a class="back" href="index.html">返回报告中心</a>
+</nav>
+<main>
+  <header>
+    <div class="eyebrow">Aggregate Quantitative Analysis</div>
+    <h1>聚合量化分析</h1>
+    <p class="hero-copy">数据范围 2026-09-16 ~ 2026-09-21，共 3 个交易日，最新数据 2026-09-21。视图包含等级分布、多因子均值、信号持续性与个股评分走势。</p>
+  </header>
+
+  <section class="metrics">
+    <div class="metric"><b>226</b><span>最新信号总数</span></div>
+    <div class="metric red"><b>27</b><span>A级推荐</span></div>
+    <div class="metric"><b>56.2</b><span>平均多因子评分</span></div>
+    <div class="metric green"><b>26</b><span>连续A级 ≥2天</span></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>信号总量与等级分布</h2><p>分组展示 A / B / C 级数量，并叠加总信号趋势。</p></div>
+    <div class="chart-panel"><div class="chart-stage compact"><canvas id="chart1"></canvas></div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>多因子核心均值</h2><p>平均评分、PE(TTM)、换手率与筹码集中度变化。</p></div>
+    <div class="chart-panel"><div class="chart-stage"><canvas id="chart2"></canvas></div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><h2>连续A级推荐股</h2><p>至少 2 个交易日保持 A 级的候选，筛选强度更高。</p></div>
+    <div class="table-panel"><div class="table-scroll">
+      <table><thead><tr><th>代码</th><th>名称</th><th>等级变化</th><th>评分变化</th><th>持续天数</th></tr></thead><tbody>
 <tr><td><strong>000809</strong></td><td>和展能源</td><td>A → A → A</td><td>81.0 → 82.1 → 88.7 📈</td><td>3天</td></tr>
 <tr><td><strong>603075</strong></td><td>热威科技股份</td><td>B → A → A</td><td>82.1 → 86.4 → 86.6 📈</td><td>3天</td></tr>
 <tr><td><strong>002516</strong></td><td>旷达科技</td><td>A → A → A</td><td>82.1 → 84.6 → 84.9 📈</td><td>3天</td></tr>
@@ -55,13 +157,23 @@ a.back{color:#1f4e79;text-decoration:none}
 <tr><td><strong>003007</strong></td><td>直真科技</td><td>A → A</td><td>80.7 → 80.8 📈</td><td>2天</td></tr>
 <tr><td><strong>002757</strong></td><td>南兴股份</td><td>A → A</td><td>77.7 → 77.9 📈</td><td>2天</td></tr>
 
-</tbody></table>
-<h2>🔄 信号持续性分布</h2>
-<div class="chart-wrap"><canvas id="chart3" height="120"></canvas></div>
-<p>横轴=出现天数，纵轴=股票数量。出现天数越多，底背离信号越强。</p>
-<h2>📈 Top 30 持续股评分走势</h2>
-<div class="chart-wrap"><canvas id="chart4" height="200"></canvas></div>
-<p class="disclaimer">⚠️ 本报告为量化筛选聚合分析，仅供参考，不构成投资建议。</p>
+      </tbody></table>
+    </div></div>
+  </section>
+
+  <div class="grid-2">
+    <section class="section">
+      <div class="section-head"><h2>信号持续性分布</h2><p>横轴为出现天数，纵轴为股票数量。</p></div>
+      <div class="chart-panel"><div class="chart-stage compact"><canvas id="chart3"></canvas></div></div>
+    </section>
+    <section class="section">
+      <div class="section-head"><h2>Top 30 评分走势</h2><p>底部图例显示股票名，悬浮查看具体日期和评分。</p></div>
+      <div class="chart-panel"><div class="chart-stage tall"><canvas id="chart4"></canvas></div></div>
+    </section>
+  </div>
+
+  <p class="disclaimer">本报告为量化筛选聚合分析，仅供参考，不构成投资建议。</p>
+</main>
 <script>
 const dates = ["2026-09-16", "2026-09-18", "2026-09-21"];
 const totals = [175, 226, 226];
@@ -74,28 +186,69 @@ const trData = [39.46, 37.12, 35.27];
 const concData = [40.4, 39.5, 39.2];
 const persData = {"3": 112, "2": 113};
 const trajData = {"000809": {"name": "和展能源", "scores": [80.99, 82.11, 88.73]}, "603075": {"name": "热威科技股份", "scores": [82.14, 86.36, 86.56]}, "002516": {"name": "旷达科技", "scores": [82.11, 84.58, 84.86]}, "003019": {"name": "宸展光电", "scores": [79.63, 79.13, 79.26]}, "002263": {"name": "大东南", "scores": [78.13, 79.04, 74.03]}, "002108": {"name": "沧州明珠", "scores": [76.16, 78.87, 73.96]}, "600736": {"name": "苏州高新", "scores": [69.34, 78.55, 78.75]}, "000029": {"name": "深深房Ａ", "scores": [66.23, 77.04, 77.25]}, "301106": {"name": "骏成科技", "scores": [71.07, 77.05, 77.18]}, "000065": {"name": "北方国际", "scores": [77.08, 68.09, 68.78]}, "002928": {"name": "华夏航空", "scores": [51.44, 76.33, 76.61]}, "601877": {"name": "正泰电器", "scores": [64.11, 74.51, 75.06]}, "301026": {"name": "浩通科技", "scores": [71.18, 74.1, 74.65]}, "002233": {"name": "塔牌集团", "scores": [70.54, 74.08, 72.21]}, "002654": {"name": "万润科技", "scores": [70.06, 73.66, 73.94]}, "600816": {"name": "建元信托", "scores": [69.59, 72.68, 73.09]}, "688628": {"name": "优利德科技", "scores": [67.44, 72.03, 71.97]}, "600930": {"name": "华电新能源集团", "scores": [69.96, 70.94, 70.94]}, "603305": {"name": "旭升集团", "scores": [57.92, 69.97, 70.66]}, "002130": {"name": "沃尔核材", "scores": [68.1, 70.53, 70.41]}, "301631": {"name": "壹连科技", "scores": [61.66, 69.63, 70.4]}, "600452": {"name": "涪陵电力", "scores": [66.12, 69.25, 69.73]}, "603166": {"name": "福达股份", "scores": [55.92, 68.93, 69.63]}, "002335": {"name": "科华数据", "scores": [68.89, 66.16, 66.85]}, "002472": {"name": "双环传动", "scores": [53.6, 68.32, 68.6]}, "000006": {"name": "深振业Ａ", "scores": [51.24, 67.03, 67.51]}, "300565": {"name": "科信技术", "scores": [62.38, 67.19, 67.45]}, "603730": {"name": "岱美股份", "scores": [59.31, 65.17, 66.0]}, "000586": {"name": "汇源通信", "scores": [65.52, 59.45, 59.45]}, "600062": {"name": "华润双鹤", "scores": [59.6, 64.25, 64.81]}};
-new Chart(document.getElementById('chart1'), {type:'bar', data:{labels:dates, datasets:[
-  {label:'A级', data:aData, backgroundColor:'#e74c3c', order:2},
-  {label:'B级', data:bData, backgroundColor:'#f39c12', order:2},
-  {label:'C级', data:cData, backgroundColor:'#bdc3c7', order:2},
-  {label:'总信号', data:totals, type:'line', borderColor:'#1f4e79', borderWidth:2, pointRadius:4, tension:.3, order:1}
-]}, options:{responsive:true, plugins:{tooltip:{mode:'index', intersect:false}}, scales:{y:{beginAtZero:true}}}});
-new Chart(document.getElementById('chart2'), {type:'line', data:{labels:dates, datasets:[
-  {label:'平均评分', data:avgData, borderColor:'#1f4e79', backgroundColor:'rgba(31,78,121,.1)', fill:true, tension:.3, yAxisID:'y'},
-  {label:'平均PE(TTM)', data:peData, borderColor:'#e74c3c', tension:.3, yAxisID:'y1'},
-  {label:'平均换手率%', data:trData, borderColor:'#27ae60', tension:.3, yAxisID:'y1'},
-  {label:'平均筹码集中度%', data:concData, borderColor:'#f39c12', tension:.3, yAxisID:'y1'}
-]}, options:{responsive:true, scales:{y:{position:'left', beginAtZero:true}, y1:{position:'right', grid:{drawOnChartArea:false}}}}});
-new Chart(document.getElementById('chart3'), {type:'bar', data:{labels:Object.keys(persData).map(k=>k+'天'), datasets:[{label:'股票数量', data:Object.values(persData), backgroundColor:'#3498db'}]},
-  options:{responsive:true, scales:{y:{beginAtZero:true}}}});
-const trajDatasets = Object.entries(trajData).map(([code,v],i) => ({
-  label: v.name||code, data: v.scores, borderColor: 'hsl('+(i*36%360)+',70%,45%)', tension:.3, pointRadius:3, spanGaps:true
+const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const gridColor = dark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.055)';
+const textColor = dark ? '#a1a1a6' : '#6e6e73';
+Chart.defaults.color = textColor;
+Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+const baseOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  interaction: { mode: 'index', intersect: false },
+  plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, padding: 16 } } }
+};
+new Chart(document.getElementById('chart1'), {
+  type: 'bar',
+  data: { labels: dates, datasets: [
+    { label: 'A级', data: aData, backgroundColor: dark ? 'rgba(255,69,58,.82)' : 'rgba(255,59,48,.86)', borderRadius: 8, maxBarThickness: 24 },
+    { label: 'B级', data: bData, backgroundColor: dark ? 'rgba(255,159,10,.82)' : 'rgba(255,149,0,.86)', borderRadius: 8, maxBarThickness: 24 },
+    { label: 'C级', data: cData, backgroundColor: dark ? 'rgba(142,142,147,.34)' : 'rgba(142,142,147,.30)', borderRadius: 8, maxBarThickness: 24 },
+    { label: '总信号', data: totals, type: 'line', borderColor: dark ? '#0a84ff' : '#0071e3', borderWidth: 3, pointRadius: 4, tension: .35, order: 1 }
+  ]},
+  options: { ...baseOptions, scales: {
+    x: { grid: { display: false } },
+    y: { beginAtZero: true, grid: { color: gridColor } }
+  }}
+});
+new Chart(document.getElementById('chart2'), {
+  type: 'line',
+  data: { labels: dates, datasets: [
+    { label: '平均评分', data: avgData, borderColor: dark ? '#0a84ff' : '#0071e3', backgroundColor: 'rgba(0,113,227,.10)', fill: true, tension: .35, pointRadius: 4, yAxisID: 'y' },
+    { label: '平均PE(TTM)', data: peData, borderColor: '#ff3b30', tension: .35, pointRadius: 3, yAxisID: 'y1' },
+    { label: '平均换手率%', data: trData, borderColor: '#30d158', tension: .35, pointRadius: 3, yAxisID: 'y1' },
+    { label: '平均筹码集中度%', data: concData, borderColor: '#ff9500', tension: .35, pointRadius: 3, yAxisID: 'y1' }
+  ]},
+  options: { ...baseOptions, scales: {
+    x: { grid: { display: false } },
+    y: { position: 'left', beginAtZero: true, grid: { color: gridColor } },
+    y1: { position: 'right', grid: { drawOnChartArea: false } }
+  }}
+});
+new Chart(document.getElementById('chart3'), {
+  type: 'bar',
+  data: { labels: Object.keys(persData).map(k => k + '天'), datasets: [
+    { label: '股票数量', data: Object.values(persData), backgroundColor: dark ? 'rgba(10,132,255,.72)' : 'rgba(0,113,227,.78)', borderRadius: 10, maxBarThickness: 36 }
+  ]},
+  options: { ...baseOptions, scales: {
+    x: { grid: { display: false } },
+    y: { beginAtZero: true, grid: { color: gridColor } }
+  }}
+});
+const trajDatasets = Object.entries(trajData).map(([code, v], i) => ({
+  label: v.name || code,
+  data: v.scores,
+  borderColor: 'hsl(' + ((i * 137.508) % 360) + ',68%,' + (dark ? '64%' : '45%') + ')',
+  backgroundColor: 'transparent', tension: .32, pointRadius: 3, pointHoverRadius: 5, spanGaps: true
 }));
-new Chart(document.getElementById('chart4'), {type:'line', data:{labels:dates, datasets:trajDatasets},
-  options:{responsive:true,
-    plugins:{legend:{display:true, position:'bottom', labels:{boxWidth:12, padding:6, font:{size:10}, usePointStyle:true}},
-             tooltip:{mode:'index', intersect:false}},
-    scales:{y:{beginAtZero:false}}
-  }});
+new Chart(document.getElementById('chart4'), {
+  type: 'line',
+  data: { labels: dates, datasets: trajDatasets },
+  options: { ...baseOptions,
+    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, padding: 9, font: { size: 11 } } },
+               tooltip: { mode: 'index', intersect: false } },
+    scales: { x: { grid: { display: false } }, y: { beginAtZero: false, grid: { color: gridColor } } }
+  }
+});
 </script>
-</body></html>
+</body>
+</html>
