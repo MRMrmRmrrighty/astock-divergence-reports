@@ -99,6 +99,33 @@ input[type=date]:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 24
 .metric.green b { color: #30d158; }
 .section { margin-top: 30px; }
 .section-head { margin: 0 4px 14px; }
+.section-head.chart-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px;
+}
+.select-all {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--hairline); border-radius: 999px;
+  background: var(--card-solid); color: var(--text);
+  font-size: 13px; font-weight: 600; padding: 7px 12px;
+  cursor: pointer; user-select: none; white-space: nowrap;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+.select-all:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--blue) 35%, transparent); }
+.select-all input {
+  appearance: none; -webkit-appearance: none; position: relative;
+  width: 34px; height: 21px; margin: 0; border: 0; border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 28%, transparent);
+  transition: background .2s ease; cursor: pointer; flex: 0 0 auto;
+}
+.select-all input::before {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 17px; height: 17px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.18);
+  transition: transform .2s ease;
+}
+.select-all input:checked { background: var(--blue); }
+.select-all input:checked::before { transform: translateX(13px); }
 .section-head h2 { font-size: 21px; font-weight: 700; letter-spacing: -.022em; margin: 0 0 4px; }
 .section-head p { color: var(--muted); font-size: 14px; margin: 0; }
 .chart-panel { padding: 22px; }
@@ -187,7 +214,16 @@ code.code { font-family: ui-monospace, SF Mono, Menlo, monospace; font-size: 12.
       <div class="chart-panel"><div class="chart-stage compact"><canvas id="chart3"></canvas></div></div>
     </section>
     <section class="section">
-      <div class="section-head"><h2>Top 30 评分走势</h2><p>按当前区间的出现天数和最高评分排序，底部图例显示股票名。</p></div>
+      <div class="section-head chart-head">
+        <div>
+          <h2>Top 30 评分走势</h2>
+          <p>按当前区间的出现天数和最高评分排序，底部图例显示股票名。</p>
+        </div>
+        <label class="select-all" for="topSelectAll">
+          <input type="checkbox" id="topSelectAll" checked>
+          全选
+        </label>
+      </div>
       <div class="chart-panel"><div class="chart-stage tall"><canvas id="chart4"></canvas></div></div>
     </section>
   </div>
@@ -214,6 +250,7 @@ const metricTotal = document.getElementById('metricTotal');
 const metricA = document.getElementById('metricA');
 const metricScore = document.getElementById('metricScore');
 const metricPersist = document.getElementById('metricPersist');
+const topSelectAll = document.getElementById('topSelectAll');
 const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 const gridColor = dark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.055)';
 Chart.defaults.color = dark ? '#a1a1a6' : '#6e6e73';
@@ -271,11 +308,26 @@ const chart4 = new Chart(document.getElementById('chart4'), {
   data: { labels: [], datasets: [] },
   options: { ...baseOptions,
     plugins: {
-      legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, padding: 9, font: { size: 11 } } },
+      legend: {
+        position: 'bottom',
+        labels: { usePointStyle: true, boxWidth: 6, padding: 9, font: { size: 11 } },
+        onClick(event, legendItem, legend) {
+          const index = legendItem.datasetIndex;
+          chart4.setDatasetVisibility(index, !chart4.isDatasetVisible(index));
+          chart4.update();
+          topSelectAll.checked = chart4.data.datasets.every((_, i) => chart4.isDatasetVisible(i));
+        }
+      },
       tooltip: { mode: 'index', intersect: false }
     },
     scales: { x: { grid: { display: false } }, y: { beginAtZero: false, grid: { color: gridColor } } }
   }
+});
+topSelectAll.addEventListener('change', () => {
+  chart4.data.datasets.forEach((dataset, index) => {
+    chart4.setDatasetVisibility(index, topSelectAll.checked);
+  });
+  chart4.update();
 });
 function setRangeFromLatest(days) {
   const end = allDates.length - 1;
@@ -388,8 +440,10 @@ function refresh() {
     label: item.stock.name || item.stock.code,
     data: allDates.map(d => item.stock.scores[d] ?? null),
     borderColor: 'hsl(' + hueForCode(item.stock.code) + ',68%,' + (dark ? '64%' : '45%') + ')',
-    backgroundColor: 'transparent', tension: .32, pointRadius: 3, pointHoverRadius: 5, spanGaps: true
+    backgroundColor: 'transparent', tension: .32, pointRadius: 3, pointHoverRadius: 5, spanGaps: true,
+    hidden: false
   }));
+  topSelectAll.checked = true;
   rangeSummary.classList.toggle('notice', expanded);
   rangeSummary.textContent = expanded
     ? `${start} ~ ${end} 无交易日；已自动匹配最近数据：${selectedDates[0]} ~ ${selectedDates.at(-1)} · ${selectedDates.length} 个交易日`
