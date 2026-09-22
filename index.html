@@ -164,7 +164,7 @@ footer { margin-top: 34px; color: var(--muted); font-size: 12.5px; text-align: c
             <div class="stat"><b>226</b><span>最新信号总数</span></div>
             <div class="stat red"><b>27</b><span>A级推荐</span></div>
             <div class="stat"><b>56.2</b><span>平均多因子评分</span></div>
-            <div class="stat"><b>0</b><span>连续A级 ≥2天</span></div>
+            <div class="stat"><b>26</b><span>连续A级 ≥2天</span></div>
           </div>
           <div class="chart-box"><canvas id="digestChart" height="200"></canvas></div>
           <a class="cta" href="trends.html">打开完整聚合分析</a>
@@ -175,7 +175,7 @@ footer { margin-top: 34px; color: var(--muted); font-size: 12.5px; text-align: c
     <footer>本报告为量化筛选聚合分析，仅供参考，不构成投资建议。数据来源：腾讯 K 线 / 东方财富 / 新浪财经。</footer>
   </main>
 <script>
-const digestDates = ["2026-09-16", "2026-09-18", "2026-09-21"];
+const digestDates = [];
 const digestTotals = [175, 226, 226];
 const digestA = [15, 27, 27];
 const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
