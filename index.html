@@ -1,21 +1,202 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>A股底背离报告</title>
+<meta name="color-scheme" content="light dark">
+<title>A股底背离报告中心</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Hiragino Sans GB',sans-serif;max-width:720px;margin:40px auto;padding:0 20px;color:#333;line-height:1.6}
-h1{font-size:1.6em;color:#1f4e79;border-bottom:2px solid #1f4e79;padding-bottom:8px}
-p.sub{color:#888;font-size:.95em}
-table{width:100%;border-collapse:collapse;margin-top:16px}
-td{padding:10px 6px;border-bottom:1px solid #eee}
-a{color:#1f4e79;text-decoration:none;font-weight:500}
-a:hover{text-decoration:underline}
-.disclaimer{margin-top:32px;font-size:.85em;color:#aaa;border-top:1px solid #eee;padding-top:12px}
-</style></head><body>
-<h1>📈 A股底背离多因子推荐等级排序报告</h1>
-<p class="sub">每个工作日 17:35 自动更新 | 最新数据截至 <strong>2026-09-21</strong> | 共 3 期</p>
-<p style="margin-top:12px"><a href="trends.html" style="background:#e74c3c;color:#fff;padding:8px 20px;border-radius:6px;font-size:.95em">📊 聚合量化分析（趋势/持续性/评分变化）</a></p>
-<table>
-<tr><td><a href="A股底背离多因子推荐等级排序报告_数据至2026-09-21.html">2026-09-21 <span style="background:#e74c3c;color:#fff;padding:2px 8px;border-radius:10px;font-size:.8em">最新</span></a> <a href="A股底背离多因子重点20只_数据至2026-09-21.csv" style="font-size:.85em;color:#888">📊 CSV</a></td></tr><tr><td><a href="A股底背离多因子推荐等级排序报告_数据至2026-09-18.html">2026-09-18</a> <a href="A股底背离多因子重点20只_数据至2026-09-18.csv" style="font-size:.85em;color:#888">📊 CSV</a></td></tr><tr><td><a href="A股底背离多因子推荐等级排序报告_数据至2026-09-16.html">2026-09-16</a> <a href="A股底背离多因子重点20只_数据至2026-09-16.csv" style="font-size:.85em;color:#888">📊 CSV</a></td></tr>
-</table>
-<p class="disclaimer">⚠️ 本报告为量化筛选结果，仅供参考，不构成投资建议。数据来源：腾讯K线/东方财富/新浪财经。</p>
-</body></html>
+:root {
+  color-scheme: light dark;
+  --bg: #f5f5f7;
+  --card: rgba(255,255,255,.76);
+  --card-solid: #fff;
+  --text: #1d1d1f;
+  --muted: #6e6e73;
+  --hairline: rgba(0,0,0,.08);
+  --blue: #0071e3;
+  --red: #ff3b30;
+  --shadow: 0 18px 45px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000;
+    --card: rgba(28,28,30,.72);
+    --card-solid: #1c1c1e;
+    --text: #f5f5f7;
+    --muted: #a1a1a6;
+    --hairline: rgba(255,255,255,.12);
+    --blue: #0a84ff;
+    --red: #ff453a;
+    --shadow: 0 18px 45px rgba(0,0,0,.48);
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(0,113,227,.13), transparent 32rem),
+    radial-gradient(circle at 100% 10%, rgba(255,59,48,.09), transparent 30rem),
+    var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Helvetica Neue", sans-serif;
+  font-feature-settings: "kern";
+  letter-spacing: -.011em;
+  line-height: 1.47;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { width: min(1180px, calc(100% - 48px)); margin: 0 auto; padding: 48px 0 64px; }
+.eyebrow { color: var(--muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; }
+h1 { font-size: clamp(31px, 5vw, 44px); line-height: 1.08; letter-spacing: -.025em; font-weight: 700; margin: 10px 0 14px; }
+.hero-copy { color: var(--muted); font-size: 17px; max-width: 620px; }
+.hero-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.status {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--hairline); background: var(--card);
+  color: var(--muted); font-size: 13px; padding: 7px 14px; border-radius: 999px;
+  backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+.status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 4px rgba(255,59,48,.12); }
+.layout { display: grid; grid-template-columns: minmax(0, 1.22fr) minmax(0, .98fr); gap: 20px; align-items: start; margin-top: 30px; }
+.panel {
+  border: 1px solid var(--hairline); border-radius: 24px; background: var(--card);
+  box-shadow: var(--shadow); overflow: hidden;
+  backdrop-filter: saturate(180%) blur(24px); -webkit-backdrop-filter: saturate(180%) blur(24px);
+}
+.panel-head { padding: 28px 28px 16px; }
+.panel-kicker { font-size: 12px; font-weight: 650; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.panel-title { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 7px 0 5px; }
+.panel-desc { color: var(--muted); font-size: 14px; margin: 0; }
+.report-list { padding: 4px 12px 14px; }
+.report-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  border-radius: 14px; transition: background .2s ease, transform .2s ease;
+}
+.report-item + .report-item { border-top: 1px solid var(--hairline); }
+.report-main { display: flex; flex: 1; min-width: 0; align-items: center; justify-content: space-between; gap: 14px; color: inherit; text-decoration: none; padding: 18px 16px; }
+.report-main:hover { background: rgba(0,113,227,.055); }
+.date { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 650; letter-spacing: -.01em; white-space: nowrap; }
+.meta { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pill { background: var(--red); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+.csv-link {
+  color: var(--blue); text-decoration: none; font-size: 13px; font-weight: 600;
+  border: 1px solid color-mix(in srgb, var(--blue) 28%, transparent);
+  padding: 7px 12px; border-radius: 999px; margin-right: 14px; white-space: nowrap;
+}
+.csv-link:hover { background: color-mix(in srgb, var(--blue) 8%, transparent); }
+.digest { padding: 0 28px 28px; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 11px; margin-bottom: 20px; }
+.stat { border: 1px solid var(--hairline); border-radius: 16px; background: color-mix(in srgb, var(--card-solid) 70%, transparent); padding: 16px; min-width: 0; }
+.stat b { display: block; font-size: 25px; letter-spacing: -.025em; font-weight: 700; }
+.stat span { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+.stat.red b { color: var(--red); }
+.chart-box { border: 1px solid var(--hairline); border-radius: 18px; padding: 18px; background: color-mix(in srgb, var(--card-solid) 68%, transparent); }
+.cta {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; border: 0; border-radius: 14px; margin-top: 18px;
+  background: var(--blue); color: #fff; text-decoration: none;
+  font-size: 15px; font-weight: 600; padding: 14px 18px; transition: transform .18s ease, opacity .18s ease;
+}
+.cta:hover { opacity: .9; transform: translateY(-1px); }
+footer { margin-top: 34px; color: var(--muted); font-size: 12.5px; text-align: center; }
+@media (max-width: 860px) {
+  .wrap { width: min(1180px, calc(100% - 34px)); padding-top: 34px; }
+  .layout { grid-template-columns: 1fr; }
+  .meta { display: none; }
+}
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow">A-SHARE QUANTITATIVE MONITOR</div>
+      <h1>A股底背离多因子报告中心</h1>
+      <p class="hero-copy">自动聚合每日底背离候选，融合推荐等级、估值、换手、筹码与持续性信号，形成可追踪的量化筛选视图。</p>
+      <div class="hero-meta">
+        <span class="status"><i class="dot"></i>最新数据 2026-09-21</span>
+        <span class="status">共 3 期</span>
+        <span class="status">工作日 17:35 自动更新</span>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-kicker">Daily Reports</div>
+          <h2 class="panel-title">报告列表</h2>
+          <p class="panel-desc">按日期查看完整报告，或下载每日重点 20 只数据。</p>
+        </div>
+        <div class="report-list">
+          <article class="report-item">
+            <a class="report-main" href="A%E8%82%A1%E5%BA%95%E8%83%8C%E7%A6%BB%E5%A4%9A%E5%9B%A0%E5%AD%90%E6%8E%A8%E8%8D%90%E7%AD%89%E7%BA%A7%E6%8E%92%E5%BA%8F%E6%8A%A5%E5%91%8A_%E6%95%B0%E6%8D%AE%E8%87%B32026-09-21.html">
+              <span class="date">2026-09-21<span class="pill">最新</span></span>
+              <span class="meta">完整多因子榜单 · 底背离候选 · 等级排序</span>
+            </a>
+            <a class="csv-link" href="A%E8%82%A1%E5%BA%95%E8%83%8C%E7%A6%BB%E5%A4%9A%E5%9B%A0%E5%AD%90%E9%87%8D%E7%82%B920%E5%8F%AA_%E6%95%B0%E6%8D%AE%E8%87%B32026-09-21.csv">CSV</a>
+          </article>
+          <article class="report-item">
+            <a class="report-main" href="A%E8%82%A1%E5%BA%95%E8%83%8C%E7%A6%BB%E5%A4%9A%E5%9B%A0%E5%AD%90%E6%8E%A8%E8%8D%90%E7%AD%89%E7%BA%A7%E6%8E%92%E5%BA%8F%E6%8A%A5%E5%91%8A_%E6%95%B0%E6%8D%AE%E8%87%B32026-09-18.html">
+              <span class="date">2026-09-18</span>
+              <span class="meta">完整多因子榜单 · 底背离候选 · 等级排序</span>
+            </a>
+            <a class="csv-link" href="A%E8%82%A1%E5%BA%95%E8%83%8C%E7%A6%BB%E5%A4%9A%E5%9B%A0%E5%AD%90%E9%87%8D%E7%82%B920%E5%8F%AA_%E6%95%B0%E6%8D%AE%E8%87%B32026-09-18.csv">CSV</a>
+          </article>
+          <article class="report-item">
+            <a class="report-main" href="A%E8%82%A1%E5%BA%95%E8%83%8C%E7%A6%BB%E5%A4%9A%E5%9B%A0%E5%AD%90%E6%8E%A8%E8%8D%90%E7%AD%89%E7%BA%A7%E6%8E%92%E5%BA%8F%E6%8A%A5%E5%91%8A_%E6%95%B0%E6%8D%AE%E8%87%B32026-09-16.html">
+              <span class="date">2026-09-16</span>
+              <span class="meta">完整多因子榜单 · 底背离候选 · 等级排序</span>
+            </a>
+            <a class="csv-link" href="A%E8%82%A1%E5%BA%95%E8%83%8C%E7%A6%BB%E5%A4%9A%E5%9B%A0%E5%AD%90%E9%87%8D%E7%82%B920%E5%8F%AA_%E6%95%B0%E6%8D%AE%E8%87%B32026-09-16.csv">CSV</a>
+          </article></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-kicker">Quantitative Digest</div>
+          <h2 class="panel-title">聚合量化分析</h2>
+          <p class="panel-desc">等级趋势、持续性和多因子评分的核心摘要。</p>
+        </div>
+        <div class="digest">
+          <div class="stats">
+            <div class="stat"><b>226</b><span>最新信号总数</span></div>
+            <div class="stat red"><b>27</b><span>A级推荐</span></div>
+            <div class="stat"><b>56.2</b><span>平均多因子评分</span></div>
+            <div class="stat"><b>0</b><span>连续A级 ≥2天</span></div>
+          </div>
+          <div class="chart-box"><canvas id="digestChart" height="200"></canvas></div>
+          <a class="cta" href="trends.html">打开完整聚合分析</a>
+        </div>
+      </div>
+    </section>
+
+    <footer>本报告为量化筛选聚合分析，仅供参考，不构成投资建议。数据来源：腾讯 K 线 / 东方财富 / 新浪财经。</footer>
+  </main>
+<script>
+const digestDates = ["2026-09-16", "2026-09-18", "2026-09-21"];
+const digestTotals = [175, 226, 226];
+const digestA = [15, 27, 27];
+const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+Chart.defaults.color = dark ? '#a1a1a6' : '#6e6e73';
+new Chart(document.getElementById('digestChart'), {
+  type: 'bar',
+  data: { labels: digestDates, datasets: [
+    { label: 'A级', data: digestA, backgroundColor: dark ? 'rgba(255,69,58,.82)' : 'rgba(255,59,48,.86)', borderRadius: 8, maxBarThickness: 26, yAxisID: 'y' },
+    { label: '总信号', data: digestTotals, type: 'line', borderColor: dark ? '#0a84ff' : '#0071e3', backgroundColor: 'transparent', borderWidth: 3, pointRadius: 4, tension: .35, yAxisID: 'y1' }
+  ]},
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 7, padding: 16 } } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { beginAtZero: true, grid: { color: dark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.055)' } },
+      y1: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } }
+    }
+  }
+});
+</script>
+</body>
+</html>
