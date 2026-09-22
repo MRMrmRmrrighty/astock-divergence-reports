@@ -85,7 +85,8 @@ input[type=date]:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 24
 .chip:hover { color: var(--text); transform: translateY(-1px); }
 .chip.active { background: var(--text); color: var(--bg); border-color: transparent; }
 .reset { color: var(--blue); background: transparent; border: 0; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 8px 4px; }
-.range-summary { margin-top: 14px; color: var(--muted); font-size: 13px; }
+.range-summary { margin-top: 14px; color: var(--muted); font-size: 13px; transition: color .2s ease; }
+.range-summary.notice { color: var(--red); font-weight: 600; }
 .metrics { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 13px; margin: 22px 0 16px; }
 .metric, .chart-panel, .table-panel {
   border: 1px solid var(--hairline); border-radius: 22px; background: var(--card); box-shadow: var(--shadow);
@@ -321,11 +322,23 @@ function buildPersistentStocks(indexes) {
 function buildPersistentRows(indexes) {
   return buildPersistentStocks(indexes).slice(0, 20);
 }
-function refresh() {
-  const start = startDateInput.value;
-  const end = endDateInput.value;
+function getRangeIndexes(start, end) {
   const indexes = allDates.map((d, i) => i).filter(i => allDates[i] >= start && allDates[i] <= end);
+  if (indexes.length) return { indexes, expanded: false };
+
+  // 用户可能选择周末或节假日。这里自动匹配区间前后的最近报告，
+  // 例如 09-19 ~ 09-20 会展示 09-18 和 09-21，并明确提示。
+  const before = allDates.map((d, i) => d <= start ? i : -1).filter(i => i >= 0).at(-1);
+  const after = allDates.map((d, i) => d >= end ? i : -1).filter(i => i >= 0)[0];
+  const candidates = [...new Set([before, after].filter(i => i !== undefined && i >= 0))].sort((a, b) => a - b);
+  return { indexes: candidates, expanded: true };
+}
+function refresh() {
+  const start = startDateInput.value || allDates[0];
+  const end = endDateInput.value || allDates.at(-1);
+  const { indexes, expanded } = getRangeIndexes(start, end);
   if (!indexes.length) {
+    rangeSummary.classList.add('notice');
     rangeSummary.textContent = '当前区间没有可用数据，请调整日期。';
     return;
   }
@@ -377,7 +390,10 @@ function refresh() {
     borderColor: 'hsl(' + hueForCode(item.stock.code) + ',68%,' + (dark ? '64%' : '45%') + ')',
     backgroundColor: 'transparent', tension: .32, pointRadius: 3, pointHoverRadius: 5, spanGaps: true
   }));
-  rangeSummary.textContent = `当前区间：${selectedDates[0]} ~ ${selectedDates.at(-1)} · ${selectedDates.length} 个交易日`;
+  rangeSummary.classList.toggle('notice', expanded);
+  rangeSummary.textContent = expanded
+    ? `${start} ~ ${end} 无交易日；已自动匹配最近数据：${selectedDates[0]} ~ ${selectedDates.at(-1)} · ${selectedDates.length} 个交易日`
+    : `当前区间：${selectedDates[0]} ~ ${selectedDates.at(-1)} · ${selectedDates.length} 个交易日`;
   chart1.update();
   chart2.update();
   chart3.update();
